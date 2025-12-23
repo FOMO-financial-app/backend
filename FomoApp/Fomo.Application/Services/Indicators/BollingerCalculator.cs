@@ -5,25 +5,29 @@ namespace Fomo.Application.Services.Indicators
 {
     public class BollingerCalculator
     {
-        public BollingerBandsDTO CalculateBollinger(List<ValuesDTO> values, int period, int k)
+        public BandsDTO CalculateBollinger(List<ValuesDTO> values, int period, int k)
         {
             if (values == null || values.Count < period || period == 0)
             {
-                return new BollingerBandsDTO
+                return new BandsDTO
                 {
                     UpperBand = new List<decimal>(),
-                    LowerBand = new List<decimal>()
+                    LowerBand = new List<decimal>(),
+                    Date = new List<string>()
                 };
             }            
 
             var parser = new ParseListHelper();
             var valuesd = parser.ParseList(values, v => v.Close);
+            var datelist = parser.GetDate(values);
+            datelist = datelist.Skip(period-1).ToList();
 
             var calculator = new SmaCalculator();
             var sma = calculator.CalculateSMA(valuesd, period);
 
             var bollingerUpper = new List<decimal>();
             var bollingerLower = new List<decimal>();
+            var datetime = new List<string>();
 
             for (int i = period - 1; i < valuesd.Count; i++)
             {
@@ -45,10 +49,11 @@ namespace Fomo.Application.Services.Indicators
                 bollingerLower.Add(smaValue - k * stdDev);
             }
 
-            return new BollingerBandsDTO
+            return new BandsDTO
             {
                 UpperBand = bollingerUpper,
                 LowerBand = bollingerLower,
+                Date = datelist
             };
         }
     }

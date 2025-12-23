@@ -7,15 +7,23 @@ namespace Fomo.Application.Services
     public class IndicatorService : IIndicatorService
     {
 
-        public List<decimal> GetSMA (List<ValuesDTO> values, int period)
+        public ValuesAndDateDTO GetSMA (List<ValuesDTO> values, int period)
         {
             var parser = new ParseListHelper();
             var valuesd = parser.ParseList(values, v => v.Close);
+            var datelist = parser.GetDate(values);
+            datelist = datelist.Skip(period-1).ToList();
             var calculator = new SmaCalculator();
-            return calculator.CalculateSMA(valuesd, period);
+            var sma = calculator.CalculateSMA(valuesd, period);
+            return new ValuesAndDateDTO
+            {
+                Values = sma,
+                Date = datelist
+            };
+
         }
 
-        public BollingerBandsDTO GetBollingerBands (List<ValuesDTO> values, int period, int k)
+        public BandsDTO GetBollingerBands (List<ValuesDTO> values, int period, int k)
         {
             var calculator = new BollingerCalculator();
             return calculator.CalculateBollinger(values, period, k);
@@ -27,16 +35,22 @@ namespace Fomo.Application.Services
             return calculator.CalculateStochastic(values, period, smaperiod);
         }
 
-        public List<decimal> GetRSI (List<ValuesDTO> values, int period)
+        public ValuesAndDateDTO GetRSI (List<ValuesDTO> values, int period)
         {
             var calculator = new RsiCalculator();
             return calculator.CalculateRsi(values, period);
         }
 
-        public List<decimal> GetSmoothedRSI(List<ValuesDTO> values, int period)
+        public ValuesAndDateDTO GetWilderRSI(List<ValuesDTO> values, int period)
         {
-            var calculator = new SmoothedRsiCalculator();
-            return calculator.CalculateSmoothedRsi(values, period);
+            var calculator = new WilderRsiCalculator();
+            return calculator.CalculateWilderRsi(values, period);
+        }
+
+        public MainChannelDTO GetMainChannel(List<ValuesDTO> values)
+        {
+            var calculator = new MainChannelCalculator();
+            return calculator.CalculateMainChannel(values);
         }
     }
 }

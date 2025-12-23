@@ -6,7 +6,7 @@ namespace Fomo.Application.DTO.StockDataDTO
     public record ValuesDTO
     {
         [JsonPropertyName("datetime")]
-        public string Datetime { get; init; } = string.Empty;
+        public string Date { get; init; } = string.Empty;
 
         [JsonPropertyName("open")]
         public string Open { get; init; } = string.Empty;

@@ -1,11 +1,5 @@
 ﻿using Fomo.Application.DTO.IndicatorsDTO;
 using Fomo.Application.DTO.StockDataDTO;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Metrics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Fomo.Application.Services.Indicators
 {
@@ -17,8 +11,8 @@ namespace Fomo.Application.Services.Indicators
             {
                 return new StochasticDTO
                 {
-                    k = new List<decimal>(),
-                    d = new List<decimal>()
+                    K = new List<decimal>(),
+                    D = new List<decimal>()
                 };
             }
 
@@ -26,6 +20,10 @@ namespace Fomo.Application.Services.Indicators
             var lowList = parser.ParseList(values, v => v.Low);
             var highList = parser.ParseList(values, v => v.High);
             var close = parser.ParseList(values, v => v.Close);
+            var kdatelist = parser.GetDate(values);
+            kdatelist = kdatelist.Skip(period - 1).ToList();
+            var ddatelist = parser.GetDate(values);
+            ddatelist = ddatelist.Skip(period+smaperiod-2).ToList();
 
             var calculator = new SmaCalculator();            
 
@@ -52,8 +50,10 @@ namespace Fomo.Application.Services.Indicators
 
             return new StochasticDTO 
             {
-                k = stochasticK,
-                d = stochasticD,
+                K = stochasticK,
+                Kdate = kdatelist,
+                D = stochasticD,
+                Ddate = ddatelist
             };
         }
     }

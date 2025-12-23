@@ -9,7 +9,7 @@ namespace Fomo.Infrastructure.Repositories
         Task<User?> GetUserIdByAuth0IdAsync(string auth0id);
         Task<List<NameAndMail>> GetUsersByAlertAsync(AlertType alertType);
         Task InsertAsync(User user);
-        Task UpdateAsync(User user);
+        void UpdateAsync(User user);
         Task DeleteAsync(string auth0id);
         Task SaveAsync();
     }

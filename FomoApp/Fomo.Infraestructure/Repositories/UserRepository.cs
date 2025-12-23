@@ -38,7 +38,7 @@ namespace Fomo.Infrastructure.Repositories
                         NumberOfStocks = tr.NumberOfStocks,
                         EntryDate = tr.EntryDate,
                         ExitDate = tr.ExitDate,
-                        TradeMethod = tr.TradeMethod == null ? null : new TradeMethod
+                        TradeMethod = new TradeMethod
                         {
                             Sma = tr.TradeMethod.Sma,
                             Bollinger = tr.TradeMethod.Bollinger,
@@ -125,7 +125,7 @@ namespace Fomo.Infrastructure.Repositories
             }
         }
 
-        public async Task UpdateAsync(User user)
+        public void UpdateAsync(User user)
         {
             _dbContext.Users.Update(user);
         }
