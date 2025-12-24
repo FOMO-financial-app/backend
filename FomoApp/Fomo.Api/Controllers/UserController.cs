@@ -118,7 +118,7 @@ namespace Fomo.Api.Controllers
             if (userUpdate.StochasticAlert.HasValue) userData.StochasticAlert = userUpdate.StochasticAlert.Value;
             if (userUpdate.RsiAlert.HasValue) userData.RsiAlert = userUpdate.RsiAlert.Value;
 
-            await _userRepository.UpdateAsync(userData);
+            _userRepository.UpdateAsync(userData);
             await _userRepository.SaveAsync();
 
             return Ok();

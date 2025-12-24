@@ -1,18 +1,25 @@
-﻿using Fomo.Application.DTO.StockDataDTO;
+﻿using Fomo.Application.DTO.IndicatorsDTO;
+using Fomo.Application.DTO.StockDataDTO;
 
 namespace Fomo.Application.Services.Indicators
 {
-    public class SmoothedRsiCalculator
+    public class WilderRsiCalculator
     {
-        public List<decimal> CalculateSmoothedRsi(List<ValuesDTO> values, int period)
+        public ValuesAndDateDTO CalculateWilderRsi(List<ValuesDTO> values, int period)
         {
             if (values == null || values.Count < period + 1 || period == 0)
             {
-                return new List<decimal>();
+                return new ValuesAndDateDTO
+                {
+                    Values = new List<decimal>(),
+                    Date = new List<string>()
+                };
             }
 
             var parser = new ParseListHelper();
             var closeList = parser.ParseList(values, v => v.Close);
+            var datelist = parser.GetDate(values);
+            datelist = datelist.Skip(period).ToList();
 
             var rsiList = new List<decimal>();
 
@@ -60,7 +67,12 @@ namespace Fomo.Application.Services.Indicators
 
                 rsiList.Add(rsi);
             }
-            return rsiList;
+
+            return new ValuesAndDateDTO
+            {
+                Values = rsiList,
+                Date = datelist
+            };
         }
     }
 }
