@@ -52,13 +52,38 @@ namespace Fomo.Api.Controllers
             return Ok(sma);
         }
 
+        [HttpGet("{symbol}/envelope/{period:int}/{percentage:int}")]
+        [ProducesResponseType(typeof(BandsDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetStockEnvelopeBands(string symbol, int period, int percentage)
+        {
+            if (period < 5)
+                return BadRequest("Period must be at least five.");
+
+            if (percentage < 1 || percentage > 15)
+                return BadRequest("K must be greater than zero and less than or equal to fifteen.");
+
+            var timeseries = await _twelveDataService.GetTimeSeries(symbol);
+
+            if (timeseries == null || timeseries.Values == null)
+                return NotFound($"No data was found for the symbol {symbol}.");
+
+            if (period > timeseries.Values.Count)
+                return BadRequest("Period cannot exceed the number of elements.");
+
+            var envelopeBands = _indicatorService.GetEnvelopeBands(timeseries.Values, period, percentage);
+
+            return Ok(envelopeBands);
+        }
+
         [HttpGet("{symbol}/bollinger/{period:int}/{k:int}")]
         [ProducesResponseType(typeof(BandsDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetStockBollingerBands(string symbol, int period, int k)
         {
-            if (period < 2)
+            if (period < 5)
                 return BadRequest("Period must be at least five.");
 
             if (k < 1 || k > 5)

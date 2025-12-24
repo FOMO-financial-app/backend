@@ -7,6 +7,8 @@ namespace Fomo.Application.Services
     {
         ValuesAndDateDTO GetSMA(List<ValuesDTO> values, int period);
 
+        BandsDTO GetEnvelopeBands(List<ValuesDTO> values, int period, int percentage);
+
         BandsDTO GetBollingerBands(List<ValuesDTO> values, int period, int k);
 
         StochasticDTO GetStochastic(List<ValuesDTO> values, int period, int smaperiod);

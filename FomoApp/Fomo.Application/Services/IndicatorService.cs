@@ -23,6 +23,12 @@ namespace Fomo.Application.Services
 
         }
 
+        public BandsDTO GetEnvelopeBands(List<ValuesDTO> values, int period, int percentage)
+        {
+            var calculator = new EnvelopeCalculator();
+            return calculator.CalculateEnvelope(values, period, percentage);
+        }
+
         public BandsDTO GetBollingerBands (List<ValuesDTO> values, int period, int k)
         {
             var calculator = new BollingerCalculator();
