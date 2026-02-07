@@ -15,75 +15,24 @@ namespace Fomo.Infrastructure.Repositories
 
         public async Task<User?> GetByAuth0IdAsync(string auth0id)
         {
-            var user = await _dbContext.Users
-                .Select(u => new User
-                {
-                    UserId = u.UserId,
-                    Auth0Id = u.Auth0Id,
-                    Name = u.Name,
-                    Email = u.Email,
-                    ProfilePictureUrl = u.ProfilePictureUrl,
-                    SmaAlert = u.SmaAlert,
-                    BollingerAlert = u.BollingerAlert,
-                    StochasticAlert = u.StochasticAlert,
-                    RsiAlert = u.RsiAlert,
-
-                    TradeResults = u.TradeResults == null ? null : u.TradeResults.Select(tr => new TradeResult
-                    {
-                        TradeResultId = tr.TradeResultId,
-                        Symbol = tr.Symbol,
-                        EntryPrice = tr.EntryPrice,
-                        ExitPrice = tr.ExitPrice,
-                        Profit = tr.Profit,
-                        NumberOfStocks = tr.NumberOfStocks,
-                        EntryDate = tr.EntryDate,
-                        ExitDate = tr.ExitDate,
-                        TradeMethod = new TradeMethod
-                        {
-                            Sma = tr.TradeMethod.Sma,
-                            Bollinger = tr.TradeMethod.Bollinger,
-                            Stochastic = tr.TradeMethod.Stochastic,
-                            Rsi = tr.TradeMethod.Rsi,
-                            Other = tr.TradeMethod.Other
-                        }
-                    }).ToList()
-                })
+            return await _dbContext.Users
+                .Include(u => u.TradeResults)
+                    .ThenInclude(tr => tr.TradeMethod)
                 .FirstOrDefaultAsync(u => u.Auth0Id == auth0id);
-
-            return user;
         }
 
         public async Task<User?> GetOnlyUserByAuth0IdAsync(string auth0id)
         {
-            var user = await _dbContext.Users
-                .Select(u => new User
-                {
-                    UserId = u.UserId,
-                    Auth0Id = u.Auth0Id,
-                    Name = u.Name,
-                    Email = u.Email,
-                    ProfilePictureUrl = u.ProfilePictureUrl,
-                    SmaAlert = u.SmaAlert,
-                    BollingerAlert = u.BollingerAlert,
-                    StochasticAlert = u.StochasticAlert,
-                    RsiAlert = u.RsiAlert,
-                })
+            return await _dbContext.Users
                 .FirstOrDefaultAsync(u => u.Auth0Id == auth0id);
-
-            return user;
         }
 
-        public async Task<User?> GetUserIdByAuth0IdAsync(string auth0id)
+        public async Task<int?> GetUserIdByAuth0IdAsync(string auth0id)
         {
-            var user = await _dbContext.Users
-                .Select(u => new User
-                {
-                    UserId = u.UserId,      
-                    Auth0Id = u.Auth0Id,
-                })
-                .FirstOrDefaultAsync(u => u.Auth0Id == auth0id);
-
-            return user;
+            return await _dbContext.Users
+                .Where(u => u.Auth0Id == auth0id)
+                .Select(u => u.UserId)
+                .FirstOrDefaultAsync();
         }
 
         public async Task<List<NameAndMail>> GetUsersByAlertAsync(AlertType alertType)
@@ -123,11 +72,6 @@ namespace Fomo.Infrastructure.Repositories
             {
                 await _dbContext.Users.AddAsync(user);
             }
-        }
-
-        public void UpdateAsync(User user)
-        {
-            _dbContext.Users.Update(user);
         }
 
         public async Task DeleteAsync(string auth0id)

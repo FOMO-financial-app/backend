@@ -1,5 +1,4 @@
-﻿using Fomo.Api.Helpers;
-using Fomo.Application.DTO.TradeResult;
+﻿using Fomo.Application.DTO.TradeResult;
 using Fomo.Application.DTO.User;
 using Fomo.Domain.Entities;
 using Fomo.Infrastructure.Repositories;
@@ -8,18 +7,15 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace Fomo.Api.Controllers
-{
-    [Authorize]
+{    
     [Route("api/[controller]")]
     public class UserController : Controller
     {
         private readonly IUserRepository _userRepository;
-        private readonly IUserValidateHelper _userValidateHelper;
 
-        public UserController (IUserRepository userRepository, IUserValidateHelper userValidateHelper)
+        public UserController (IUserRepository userRepository)
         {
             _userRepository = userRepository;
-            _userValidateHelper = userValidateHelper;
         }
 
         [Authorize]
@@ -31,9 +27,8 @@ namespace Fomo.Api.Controllers
             var auth0Id = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")?.Value;
             var name = User.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
             var email = User.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
-            var picture = User.Claims.FirstOrDefault(c => c.Type == "picture")?.Value;
             
-            if (auth0Id == null || name == null || email == null || picture == null)
+            if (auth0Id == null || name == null || email == null)
             {
                 return BadRequest("Cannot obtain user info");
             }
@@ -42,8 +37,7 @@ namespace Fomo.Api.Controllers
             {
                 Auth0Id = auth0Id,
                 Name = name,
-                Email = email,
-                ProfilePictureUrl = picture
+                Email = email
             };
 
             await _userRepository.InsertAsync(newUser);
@@ -59,13 +53,18 @@ namespace Fomo.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Details()
         {
-            var userData = await _userValidateHelper.GetFullUserAsync(User);
+            var auth0Id = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")?.Value;
+
+            if (auth0Id == null) return BadRequest("User must be authenticated");
+
+            var userData = await _userRepository.GetByAuth0IdAsync(auth0Id);
+
             if (userData == null) return NotFound("Invalid User");
 
-            var tradeResultsDTO = new List<UserTradeResultDTO>();
+            var tradeResultsDTO = new List<TradeResultDTO>();
             if (userData.TradeResults != null)
             {
-                tradeResultsDTO = userData.TradeResults.Select(tr => new UserTradeResultDTO
+                tradeResultsDTO = userData.TradeResults.Select(tr => new TradeResultDTO
                 {
                     TradeResultId = tr.TradeResultId,
                     Symbol = tr.Symbol,
@@ -82,15 +81,14 @@ namespace Fomo.Api.Controllers
                         Stochastic = tr.TradeMethod?.Stochastic ?? false,
                         Rsi = tr.TradeMethod?.Rsi ?? false,
                         Other = tr.TradeMethod?.Other ?? false,
-                    }
+                    },
+                    UserName = userData.Name,
                 }).ToList();
             }
 
             var userDto = new UserDTO()
             {
                 Name = userData.Name,
-                Email = userData.Email,
-                ProfilePictureUrl = userData.ProfilePictureUrl,
                 SmaAlert = userData.SmaAlert,
                 BollingerAlert = userData.BollingerAlert,
                 StochasticAlert = userData.StochasticAlert,
@@ -108,17 +106,20 @@ namespace Fomo.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Edit([FromBody] UserUpdateDTO userUpdate)
         {
-            var userData = await _userValidateHelper.GetOnlyUserAsync(User);
+            var auth0Id = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")?.Value;
+
+            if (auth0Id == null) return BadRequest("User must be authenticated");
+
+            var userData = await _userRepository.GetOnlyUserByAuth0IdAsync(auth0Id);
+
             if (userData == null) return NotFound("Invalid User");
 
             if (!String.IsNullOrEmpty(userUpdate.Name)) userData.Name = userUpdate.Name;
-            if (userUpdate.ProfilePictureUrl != null) userData.ProfilePictureUrl = userUpdate.ProfilePictureUrl;
             if (userUpdate.SmaAlert.HasValue) userData.SmaAlert = userUpdate.SmaAlert.Value;
             if (userUpdate.BollingerAlert.HasValue) userData.BollingerAlert = userUpdate.BollingerAlert.Value;
             if (userUpdate.StochasticAlert.HasValue) userData.StochasticAlert = userUpdate.StochasticAlert.Value;
             if (userUpdate.RsiAlert.HasValue) userData.RsiAlert = userUpdate.RsiAlert.Value;
 
-            _userRepository.UpdateAsync(userData);
             await _userRepository.SaveAsync();
 
             return Ok();

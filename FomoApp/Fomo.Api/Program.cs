@@ -1,12 +1,13 @@
 using Fomo.Api.Helpers;
 using Fomo.Application.Services;
-using Fomo.Infrastructure.ExternalServices.StockService;
 using Fomo.Infrastructure.ExternalServices.MailService;
+using Fomo.Infrastructure.ExternalServices.MailService.Alerts;
+using Fomo.Infrastructure.ExternalServices.StockService;
 using Fomo.Infrastructure.Persistence;
 using Fomo.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Fomo.Infrastructure.ExternalServices.MailService.Alerts;
+using Microsoft.IdentityModel.Tokens;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,11 +20,11 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddHttpClient<IExternalApiHelper, ExternalApiHelper>();
 
-var MyPolicy = "AllowFrontend";
+var Policy = "AllowFrontend";
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: MyPolicy,
+    options.AddPolicy(name: Policy,
     policy =>
     {
         policy
@@ -33,15 +34,41 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
-{
-    options.Authority = $"https://{builder.Configuration["Auth0:Domain"]}/";
-    options.Audience = builder.Configuration["Auth0:Audience"];
-});
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = $"https://{builder.Configuration["Auth0:Domain"]}/";
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = $"https://{builder.Configuration["Auth0:Domain"]}/",
+
+            ValidateAudience = true,
+            ValidAudiences = new[]
+            {
+                builder.Configuration["Auth0:Audience"]
+            },
+
+            ValidateLifetime = true
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = _ =>
+            {
+                Console.WriteLine(" TOKEN VALIDATED");
+                return Task.CompletedTask;
+            },
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine(" AUTH FAILED");
+                Console.WriteLine(context.Exception);
+                return Task.CompletedTask;
+            }
+        };
+    });
 
 builder.Services.AddAuthorization();
 
@@ -91,7 +118,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors(MyPolicy);
+app.UseCors(Policy);
 
 app.UseAuthentication();
 app.UseAuthorization();
