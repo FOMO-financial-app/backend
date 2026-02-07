@@ -14,20 +14,6 @@ namespace Fomo.Infrastructure.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<List<SymbolAndName>> GetStocks ()
-        {
-            var stocksList = await _dbContext.Stocks
-                .Select(s => new SymbolAndName
-                {
-                    Symbol = s.Symbol,
-                    Name = s.Name
-                })
-                .AsNoTracking()
-                .ToListAsync();
-
-            return stocksList;
-        }
-
         public async Task<List<Stock>> GetPaginatedStocks(int page, int pageSize)
         {
             if (page < 1) page = 1;
@@ -45,15 +31,15 @@ namespace Fomo.Infrastructure.Repositories
         public async Task<List<SymbolAndName>> GetFilteredStocks(string query)
         {
             var filteredList = await _dbContext.Stocks
+                .Where(tr =>
+                    tr.Name.StartsWith(query) ||
+                    tr.Symbol.StartsWith(query))
                 .Select(s => new SymbolAndName
                 {
                     Symbol = s.Symbol,
                     Name = s.Name
                 })
-                .AsNoTracking()
-                .Where(tr =>
-                    tr.Name.StartsWith(query) ||
-                    tr.Symbol.StartsWith(query))
+                .AsNoTracking()                
                 .ToListAsync();
 
             return filteredList;

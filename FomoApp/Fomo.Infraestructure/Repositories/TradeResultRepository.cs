@@ -16,36 +16,20 @@ namespace Fomo.Infrastructure.Repositories
 
         public async Task<TradeResult?> GetByIdAsync(int id)
         {
-            var tradeResult = await _dbContext.TradeResults
-                .Select(tr => new TradeResult
-                {
-                    TradeResultId = tr.TradeResultId,
-                    Symbol = tr.Symbol,
-                    EntryPrice = tr.EntryPrice,
-                    ExitPrice = tr.ExitPrice,
-                    NumberOfStocks = tr.NumberOfStocks,
-                    EntryDate = tr.EntryDate,
-                    ExitDate = tr.ExitDate,
-                    UserId = tr.UserId,
-                    TradeMethod = new TradeMethod
-                    {
-                        Sma = tr.TradeMethod.Sma,
-                        Bollinger = tr.TradeMethod.Bollinger,
-                        Stochastic = tr.TradeMethod.Stochastic,
-                        Rsi = tr.TradeMethod.Rsi,
-                        Other = tr.TradeMethod.Other
-                    }
-                })
+            return await _dbContext.TradeResults
+                .Include(tr => tr.TradeMethod)
                 .FirstOrDefaultAsync(tr => tr.TradeResultId == id);
-
-            return tradeResult;
         }
 
-        public async Task<List<TradeResultDTO>> GetAllAsync()
+        public async Task<List<TradeResultDTO>> GetPaginatedAsync(int page, int pageSize)
         {
+            if (page < 1) page = 1;
+
             var resultsList = await _dbContext.TradeResults
-                .Include(tr => tr.TradeMethod)
-                .Include(tr => tr.User)
+                .AsNoTracking()
+                .OrderByDescending(tr => tr.EntryDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(tr => new TradeResultDTO
                 {
                     TradeResultId = tr.TradeResultId,
@@ -66,27 +50,31 @@ namespace Fomo.Infrastructure.Repositories
                     },
                     UserName = tr.User.Name                    
                 })
-                .AsNoTracking()
                 .ToListAsync();
 
             return resultsList;
         }
 
+        public async Task<int> CountRecordsAsync()
+        {
+            var numberOfRecords = await _dbContext.TradeResults
+                .CountAsync();
+
+            return numberOfRecords;
+        }
+
         public async Task InsertAsync(TradeResult tradeResult)
         {
-            await _dbContext.TradeResults.AddAsync(tradeResult);            
+            await _dbContext.TradeResults.AddAsync(tradeResult);             
         }
 
-        public void UpdateAsync(TradeResult tradeResult)
+
+        public async Task DeleteAsync(int id)
         {
-            _dbContext.TradeResults.Update(tradeResult);
-        }
-
-        public void DeleteAsync(TradeResult tradeResult)
-        {            
-            if (tradeResult != null)
+            var result = await _dbContext.TradeResults.FirstOrDefaultAsync(tr => tr.TradeResultId == id);
+            if (result != null)
             {
-                _dbContext.TradeResults.Remove(tradeResult);
+                _dbContext.TradeResults.Remove(result);
             }
         }
 

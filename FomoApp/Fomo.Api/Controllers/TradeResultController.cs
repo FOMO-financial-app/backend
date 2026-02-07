@@ -33,8 +33,8 @@ namespace Fomo.Api.Controllers
 
             if (!_tradeResultValidateHelper.IsValidTradeResultDTO(tradeResult)) return BadRequest("Invalid tradeResult");
 
-            var userData = await _userValidateHelper.GetUserIdAsync(User);
-            if (userData == null) return NotFound("Invalid User");
+            var userId = await _userValidateHelper.GetUserIdAsync(User);
+            if (userId == null) return NotFound("Invalid User");
 
             var newTradeResult = new TradeResult()
             {
@@ -44,7 +44,7 @@ namespace Fomo.Api.Controllers
                 NumberOfStocks = tradeResult.NumberOfStocks,
                 EntryDate = tradeResult.EntryDate,
                 ExitDate = tradeResult.ExitDate,
-                UserId = userData.UserId,
+                UserId = userId.Value,
                 TradeMethod = tradeResult.TradeMethod == null ? new TradeMethod() : new TradeMethod
                 {
                     Sma = tradeResult.TradeMethod.Sma,
@@ -63,15 +63,38 @@ namespace Fomo.Api.Controllers
             return Ok("TradeResult created succesfully");
         }
 
-        [HttpGet("all")]
+        [HttpGet("{page:int}/{pagesize:int}")]
+        [ProducesResponseType(typeof(TradeResultsPageDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(List<TradeResultDTO>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> AllResults()
+        public async Task<IActionResult> GetTradeResultsPage(int page, int pagesize)
         {
-            var tradeResults = await _tradeResultRepository.GetAllAsync();
-            if (tradeResults == null) return NotFound("No TradeResults found");
+            if (page <= 0 || pagesize <= 0)
+                return BadRequest("Page and PageSize must be greatear than 0");
 
-            return Ok(tradeResults);
+            var totalRecords = await _tradeResultRepository.CountRecordsAsync();
+
+            var totalPages = (int)Math.Ceiling((double)totalRecords / pagesize);
+
+            if (page > totalPages)
+                return Ok(new TradeResultsPageDTO
+                {
+                    Data = [],
+                    CurrentPage = page,
+                    TotalPages = totalPages
+                });
+
+            var tradeResults = await _tradeResultRepository.GetPaginatedAsync(page, pagesize);
+
+            if (tradeResults == null)
+                return NotFound("Cannot obtain TradeResults data");
+
+            return Ok(new TradeResultsPageDTO
+            {
+                Data = tradeResults,
+                CurrentPage = page,
+                TotalPages = totalPages
+            });
         }
 
         [Authorize]
@@ -84,21 +107,21 @@ namespace Fomo.Api.Controllers
             if (Update == null) return BadRequest("TradeResult cannot be null");
             if (Update.TradeResultId == null) return BadRequest("Id cannot be null");
 
-            var userData = await _userValidateHelper.GetUserIdAsync(User);
-            if (userData == null) return NotFound("Invalid User");
+            var userId = await _userValidateHelper.GetUserIdAsync(User);
+            if (userId == null) return NotFound("Invalid User");
 
             var tradeResult = await _tradeResultRepository.GetByIdAsync(Update.TradeResultId.Value);
-            if (tradeResult == null) return BadRequest("Invalid TradeResultId");
+            if (tradeResult == null) return NotFound("TradeResult not found");
 
-            if (tradeResult.UserId != userData.UserId) return BadRequest("Only the creator can edit the post");
+            if (tradeResult.UserId != userId.Value) return BadRequest("Only the creator can edit the post");
 
-            if (Update.Symbol != null && Update.Symbol != "") tradeResult.Symbol = Update.Symbol;
-            if (Update.EntryPrice > 0) tradeResult.EntryPrice = Update.EntryPrice;
-            if (Update.ExitPrice > 0) tradeResult.ExitPrice = Update.ExitPrice;
-            if (Update.NumberOfStocks > 0) tradeResult.NumberOfStocks = Update.NumberOfStocks;
-            if (Update.EntryDate > new DateTime(2025, 1, 1, 0, 0, 0)) tradeResult.EntryDate = Update.EntryDate;
-            if (Update.ExitDate > new DateTime(2025, 1, 1, 0, 0, 0) && Update.ExitDate > tradeResult.EntryDate)
-                tradeResult.ExitDate = Update.ExitDate;
+            if (!String.IsNullOrEmpty(Update.Symbol)) tradeResult.Symbol = Update.Symbol;
+            if (Update.EntryPrice > 0) tradeResult.EntryPrice = Update.EntryPrice.Value;
+            if (Update.ExitPrice > 0) tradeResult.ExitPrice = Update.ExitPrice.Value;
+            if (Update.NumberOfStocks > 0) tradeResult.NumberOfStocks = Update.NumberOfStocks.Value;
+            if (Update.EntryDate > new DateTime(2026, 1, 1, 0, 0, 0)) tradeResult.EntryDate = Update.EntryDate.Value;
+            if (Update.ExitDate > new DateTime(2026, 1, 1, 0, 0, 0) && Update.ExitDate > tradeResult.EntryDate)
+                tradeResult.ExitDate = Update.ExitDate.Value;
             if (Update.TradeMethod != null && tradeResult.TradeMethod != null)
             {
                 tradeResult.TradeMethod.Sma = Update.TradeMethod.Sma;
@@ -109,7 +132,6 @@ namespace Fomo.Api.Controllers
             }
 
             tradeResult.CalculateProfit();
-            _tradeResultRepository.UpdateAsync(tradeResult);
             await _tradeResultRepository.SaveAsync();
 
             return Ok();
@@ -130,9 +152,9 @@ namespace Fomo.Api.Controllers
             var tradeResult = await _tradeResultRepository.GetByIdAsync(id);
             if (tradeResult == null) return NotFound("TradeResult not found");
 
-            if (tradeResult.UserId != userData.UserId) return BadRequest("Only the creator can delete this post");
+            if (tradeResult.UserId != userData) return BadRequest("Only the creator can delete this post");
 
-            _tradeResultRepository.DeleteAsync(tradeResult);
+            await _tradeResultRepository.DeleteAsync(tradeResult.TradeResultId);
             await _tradeResultRepository.SaveAsync();
 
             return Ok("TradeResult deleted succesfully");

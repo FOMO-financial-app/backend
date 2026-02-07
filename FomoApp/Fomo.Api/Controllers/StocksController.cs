@@ -1,7 +1,6 @@
 ﻿using Fomo.Application.DTO.StockDataDTO;
 using Fomo.Application.Services;
 using Fomo.Domain.Entities;
-using Fomo.Infrastructure.ExternalServices.MailService;
 using Fomo.Infrastructure.ExternalServices.StockService;
 using Fomo.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Mvc;
@@ -21,19 +20,6 @@ namespace Fomo.Api.Controllers
             _twelveDataService = twelveDataService;
             _stockRepository = stockRepository;
             _indicatorService = indicatorService;
-        }
-
-        [HttpGet]
-        [ProducesResponseType(typeof(SymbolAndName), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetAllStocks()
-        {
-            var stocks = await _stockRepository.GetStocks();
-
-            if (stocks == null)
-                return NotFound("Cannot obtain StockData");
-
-            return Ok(stocks);
         }
 
         [HttpGet("find/{query}")]

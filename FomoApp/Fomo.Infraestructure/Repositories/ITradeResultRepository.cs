@@ -6,10 +6,10 @@ namespace Fomo.Infrastructure.Repositories
     public interface ITradeResultRepository
     {
         Task<TradeResult?> GetByIdAsync(int id);
-        Task<List<TradeResultDTO>> GetAllAsync();
+        Task<List<TradeResultDTO>> GetPaginatedAsync(int page, int pageSize);
+        Task<int> CountRecordsAsync();
         Task InsertAsync(TradeResult tradeResult);
-        void UpdateAsync(TradeResult tradeResult);
-        void DeleteAsync(TradeResult tradeResult);
+        Task DeleteAsync(int id);
         Task SaveAsync();
     }
 }
