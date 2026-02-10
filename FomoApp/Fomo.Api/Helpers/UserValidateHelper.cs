@@ -14,7 +14,7 @@ namespace Fomo.Api.Helpers
 
         public async Task<int?> GetUserIdAsync(ClaimsPrincipal user)
         {
-            var auth0Id = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")?.Value;
+            var auth0Id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? user.FindFirst("sub")?.Value;
 
             if (auth0Id == null)
             {

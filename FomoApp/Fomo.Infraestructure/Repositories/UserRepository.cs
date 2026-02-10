@@ -65,22 +65,30 @@ namespace Fomo.Infrastructure.Repositories
         }
 
 
-        public async Task InsertAsync(User user)
+        public async Task<bool> InsertIfNotExistsAsync(User user)
         {
             bool exist = await _dbContext.Users.AnyAsync(u => u.Auth0Id == user.Auth0Id);
-            if (!exist)
+
+            if (exist)
             {
-                await _dbContext.Users.AddAsync(user);
+                return false;                
             }
+
+            await _dbContext.Users.AddAsync(user);
+            return true;
         }
 
-        public async Task DeleteAsync(string auth0id)
+        public async Task<bool> DeleteIfExistsAsync(string auth0id)
         {
             var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Auth0Id == auth0id);
-            if (user != null)
+
+            if (user == null)
             {
-                _dbContext.Users.Remove(user);
+                return false;
             }
+
+            _dbContext.Users.Remove(user);
+            return true;
         }
 
         public async Task SaveAsync()
