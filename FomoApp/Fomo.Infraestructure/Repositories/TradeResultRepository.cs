@@ -69,13 +69,17 @@ namespace Fomo.Infrastructure.Repositories
         }
 
 
-        public async Task DeleteAsync(int id)
+        public async Task<bool> DeleteIfExistsAsync(int id)
         {
             var result = await _dbContext.TradeResults.FirstOrDefaultAsync(tr => tr.TradeResultId == id);
-            if (result != null)
+
+            if (result == null)
             {
-                _dbContext.TradeResults.Remove(result);
+                return false;
             }
+
+            _dbContext.TradeResults.Remove(result);
+            return true;
         }
 
         public async Task SaveAsync()

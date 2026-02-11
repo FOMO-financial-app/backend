@@ -9,7 +9,7 @@ namespace Fomo.Infrastructure.Repositories
         Task<List<TradeResultDTO>> GetPaginatedAsync(int page, int pageSize);
         Task<int> CountRecordsAsync();
         Task InsertAsync(TradeResult tradeResult);
-        Task DeleteAsync(int id);
+        Task<bool> DeleteIfExistsAsync(int id);
         Task SaveAsync();
     }
 }

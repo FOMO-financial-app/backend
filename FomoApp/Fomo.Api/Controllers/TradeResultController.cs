@@ -154,7 +154,7 @@ namespace Fomo.Api.Controllers
 
             if (tradeResult.UserId != userData) return BadRequest("Only the creator can delete this post");
 
-            await _tradeResultRepository.DeleteAsync(tradeResult.TradeResultId);
+            await _tradeResultRepository.DeleteIfExistsAsync(tradeResult.TradeResultId);
             await _tradeResultRepository.SaveAsync();
 
             return Ok("TradeResult deleted succesfully");

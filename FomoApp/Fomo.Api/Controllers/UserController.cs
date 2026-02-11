@@ -22,13 +22,13 @@ namespace Fomo.Api.Controllers
         [HttpPost("create")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create([FromBody] UserCreateDTO userCreate)
         {
-            var auth0Id = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")?.Value;
-            var name = User.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
-            var email = User.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
-            
-            if (auth0Id == null || name == null || email == null)
+            var auth0Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+            var name = userCreate.Name;
+            var email = userCreate.Email;
+
+            if (String.IsNullOrEmpty(auth0Id) || String.IsNullOrEmpty(name) || String.IsNullOrEmpty(email))
             {
                 return BadRequest("Cannot obtain user info");
             }
@@ -40,7 +40,7 @@ namespace Fomo.Api.Controllers
                 Email = email
             };
 
-            await _userRepository.InsertAsync(newUser);
+            await _userRepository.InsertIfNotExistsAsync(newUser);
             await _userRepository.SaveAsync();
 
             return Ok();
@@ -53,7 +53,7 @@ namespace Fomo.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Details()
         {
-            var auth0Id = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")?.Value;
+            var auth0Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
 
             if (auth0Id == null) return BadRequest("User must be authenticated");
 
@@ -106,7 +106,7 @@ namespace Fomo.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Edit([FromBody] UserUpdateDTO userUpdate)
         {
-            var auth0Id = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")?.Value;
+            var auth0Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
 
             if (auth0Id == null) return BadRequest("User must be authenticated");
 
@@ -131,10 +131,11 @@ namespace Fomo.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Delete()
         {
-            var auth0Id = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")?.Value;
+            var auth0Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+
             if (auth0Id == null) return BadRequest("Invalid UserId");
 
-            await _userRepository.DeleteAsync(auth0Id);
+            await _userRepository.DeleteIfExistsAsync(auth0Id);
             await _userRepository.SaveAsync();
 
             return Ok();
