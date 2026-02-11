@@ -98,6 +98,44 @@ namespace Fomo.Api.Controllers
         }
 
         [Authorize]
+        [HttpGet("profile/{page:int}/{pagesize:int}")]
+        [ProducesResponseType(typeof(TradeResultsPageDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetTradeResultsPageByUser(int page, int pagesize)
+        {
+            if (page <= 0 || pagesize <= 0)
+                return BadRequest("Page and PageSize must be greatear than 0");
+
+            var userId = await _userValidateHelper.GetUserIdAsync(User);
+            if (userId == null) return NotFound("Invalid User");
+
+            var totalRecords = await _tradeResultRepository.CountRecordsByUserAsync(userId.Value);
+
+            var totalPages = (int)Math.Ceiling((double)totalRecords / pagesize);
+
+            if (page > totalPages)
+                return Ok(new TradeResultsPageDTO
+                {
+                    Data = [],
+                    CurrentPage = page,
+                    TotalPages = totalPages
+                });
+
+            var tradeResults = await _tradeResultRepository.GetPaginatedByUserAsync(page, pagesize, userId.Value);
+
+            if (tradeResults == null)
+                return NotFound("Cannot obtain TradeResults data");
+
+            return Ok(new TradeResultsPageDTO
+            {
+                Data = tradeResults,
+                CurrentPage = page,
+                TotalPages = totalPages
+            });
+        }
+
+        [Authorize]
         [HttpPatch("edit")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

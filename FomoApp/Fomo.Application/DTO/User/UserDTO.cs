@@ -9,6 +9,5 @@ namespace Fomo.Application.DTO.User
         public bool? BollingerAlert { get; set; }
         public bool? StochasticAlert { get; set; }
         public bool? RsiAlert { get; set; }
-        public List<TradeResultDTO>? TradeResults { get; set; }
     }
 }

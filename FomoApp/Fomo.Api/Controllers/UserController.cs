@@ -1,5 +1,4 @@
-﻿using Fomo.Application.DTO.TradeResult;
-using Fomo.Application.DTO.User;
+﻿using Fomo.Application.DTO.User;
 using Fomo.Domain.Entities;
 using Fomo.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authorization;
@@ -57,34 +56,9 @@ namespace Fomo.Api.Controllers
 
             if (auth0Id == null) return BadRequest("User must be authenticated");
 
-            var userData = await _userRepository.GetByAuth0IdAsync(auth0Id);
+            var userData = await _userRepository.GetOnlyUserByAuth0IdAsync(auth0Id);
 
             if (userData == null) return NotFound("Invalid User");
-
-            var tradeResultsDTO = new List<TradeResultDTO>();
-            if (userData.TradeResults != null)
-            {
-                tradeResultsDTO = userData.TradeResults.Select(tr => new TradeResultDTO
-                {
-                    TradeResultId = tr.TradeResultId,
-                    Symbol = tr.Symbol,
-                    EntryPrice = tr.EntryPrice,
-                    ExitPrice = tr.ExitPrice,
-                    Profit = tr.Profit,
-                    NumberOfStocks = tr.NumberOfStocks,
-                    EntryDate = tr.EntryDate,
-                    ExitDate = tr.ExitDate,
-                    TradeMethod = new TradeMethodDTO
-                    {
-                        Sma = tr.TradeMethod?.Sma ?? false,
-                        Bollinger = tr.TradeMethod?.Bollinger ?? false,
-                        Stochastic = tr.TradeMethod?.Stochastic ?? false,
-                        Rsi = tr.TradeMethod?.Rsi ?? false,
-                        Other = tr.TradeMethod?.Other ?? false,
-                    },
-                    UserName = userData.Name,
-                }).ToList();
-            }
 
             var userDto = new UserDTO()
             {
@@ -93,7 +67,6 @@ namespace Fomo.Api.Controllers
                 BollingerAlert = userData.BollingerAlert,
                 StochasticAlert = userData.StochasticAlert,
                 RsiAlert = userData.RsiAlert,
-                TradeResults = tradeResultsDTO,
             };
 
             return Ok(userDto);
