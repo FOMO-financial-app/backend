@@ -13,14 +13,6 @@ namespace Fomo.Infrastructure.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<User?> GetByAuth0IdAsync(string auth0id)
-        {
-            return await _dbContext.Users
-                .Include(u => u.TradeResults)
-                    .ThenInclude(tr => tr.TradeMethod)
-                .FirstOrDefaultAsync(u => u.Auth0Id == auth0id);
-        }
-
         public async Task<User?> GetOnlyUserByAuth0IdAsync(string auth0id)
         {
             return await _dbContext.Users
