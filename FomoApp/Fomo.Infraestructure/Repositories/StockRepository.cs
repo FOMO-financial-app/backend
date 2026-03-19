@@ -61,6 +61,26 @@ namespace Fomo.Infrastructure.Repositories
             return numberOfRecords;
         }
 
+        public async Task<string> GetFirstSymbolAsync()
+        {
+            var first = await _dbContext.Stocks
+                .OrderBy(s => s.Symbol)
+                .Select(s => s.Symbol)
+                .FirstOrDefaultAsync();
+
+            return first ?? string.Empty;
+        }
+
+        public async Task<string> GetSymbolIfExistsAsync(string query)
+        {
+            var exists = await _dbContext.Stocks
+                .AnyAsync(s => s.Symbol == query);
+
+            if (exists) return query;
+
+            return await GetFirstSymbolAsync();
+        }
+
         public async Task TruncateAsync()
         {
             await _dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE [Stocks]");

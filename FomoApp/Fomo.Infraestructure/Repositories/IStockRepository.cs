@@ -9,6 +9,8 @@ namespace Fomo.Infrastructure.Repositories
         Task<List<SymbolAndName>> GetFilteredStocks(string query);
         Task InsertListAsync(List<Stock> stocks);
         Task<int> CountRecordsAsync();
+        Task<string> GetFirstSymbolAsync();
+        Task<string> GetSymbolIfExistsAsync(string query);
         Task TruncateAsync();
         Task<IDbContextTransaction> BeginTransactionAsync();
     }

@@ -4,6 +4,7 @@ namespace Fomo.Api.Helpers
 {
     public interface ITradeResultValidateHelper
     {
-        bool IsValidTradeResultDTO(TradeResultCreateDTO tradeResult);
+        bool IsValidTradeResultUpdateDTO(TradeResultUpdateDTO tradeResult);
+        bool IsValidDate(DateTime? entryDate, DateTime? exitDate, DateTime minDate);
     }
 }

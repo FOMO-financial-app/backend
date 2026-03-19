@@ -3,10 +3,12 @@ using Fomo.Domain.Entities;
 using Fomo.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace Fomo.Api.Controllers
-{    
+{
+    [ApiController]
     [Route("api/[controller]")]
     public class UserController : Controller
     {
@@ -39,8 +41,16 @@ namespace Fomo.Api.Controllers
                 Email = email
             };
 
-            await _userRepository.InsertIfNotExistsAsync(newUser);
-            await _userRepository.SaveAsync();
+            try
+            {
+                await _userRepository.InsertIfNotExistsAsync(newUser);
+                await _userRepository.SaveAsync();
+            }
+            catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("duplicate") == true
+                                            || ex.InnerException?.Message.Contains("UNIQUE") == true)
+            {
+                return Ok();
+            }
 
             return Ok();
         }

@@ -7,17 +7,20 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Fomo.Api.Controllers
 {
+    [ApiController]
     [Route("api/[controller]")]
     public class TradeResultController : Controller
     {
         private readonly ITradeResultRepository _tradeResultRepository;
+        private readonly IStockRepository _stockRepository;
         private readonly IUserValidateHelper _userValidateHelper;
         private readonly ITradeResultValidateHelper _tradeResultValidateHelper;
 
-        public TradeResultController(ITradeResultRepository tradeResultRepository, IUserValidateHelper userValidateHelper,
-            ITradeResultValidateHelper tradeResultValidateHelper)
+        public TradeResultController(ITradeResultRepository tradeResultRepository, IStockRepository stockRepository,
+            IUserValidateHelper userValidateHelper, ITradeResultValidateHelper tradeResultValidateHelper)
         {
             _tradeResultRepository = tradeResultRepository;
+            _stockRepository = stockRepository;
             _userValidateHelper = userValidateHelper;
             _tradeResultValidateHelper = tradeResultValidateHelper;
         }
@@ -29,16 +32,24 @@ namespace Fomo.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] TradeResultCreateDTO tradeResult)
         {
-            if (tradeResult == null) return BadRequest("Invalid tradeResult");
-
-            if (!_tradeResultValidateHelper.IsValidTradeResultDTO(tradeResult)) return BadRequest("Invalid tradeResult");
+            if (tradeResult == null) return BadRequest("Invalid tradeResult");            
 
             var userId = await _userValidateHelper.GetUserIdAsync(User);
             if (userId == null) return NotFound("Invalid User");
 
+            if (String.IsNullOrEmpty(tradeResult.Symbol)) return BadRequest("Invalid tradeResult");
+
+            var minDate = new DateTime(2026, 1, 1, 0, 0, 0);
+            if (!_tradeResultValidateHelper.IsValidDate(tradeResult.EntryDate, tradeResult.ExitDate, minDate))
+            {
+                return BadRequest("Invalid Date");
+            }
+
+            var symbol = await _stockRepository.GetSymbolIfExistsAsync(tradeResult.Symbol);
+
             var newTradeResult = new TradeResult()
             {
-                Symbol = tradeResult.Symbol,
+                Symbol = symbol,
                 EntryPrice = tradeResult.EntryPrice,
                 ExitPrice = tradeResult.ExitPrice,
                 NumberOfStocks = tradeResult.NumberOfStocks,
@@ -144,6 +155,7 @@ namespace Fomo.Api.Controllers
         {
             if (Update == null) return BadRequest("TradeResult cannot be null");
             if (Update.TradeResultId == null) return BadRequest("Id cannot be null");
+            if (!_tradeResultValidateHelper.IsValidTradeResultUpdateDTO(Update)) return BadRequest("Invalid Upadte");
 
             var userId = await _userValidateHelper.GetUserIdAsync(User);
             if (userId == null) return NotFound("Invalid User");
@@ -153,13 +165,24 @@ namespace Fomo.Api.Controllers
 
             if (tradeResult.UserId != userId.Value) return BadRequest("Only the creator can edit the post");
 
-            if (!String.IsNullOrEmpty(Update.Symbol)) tradeResult.Symbol = Update.Symbol;
+            if (!String.IsNullOrEmpty(Update.Symbol) && !(Update.Symbol.Length > 10))
+            {
+                var symbol = await _stockRepository.GetSymbolIfExistsAsync(Update.Symbol);
+                tradeResult.Symbol = symbol;
+            }
+
             if (Update.EntryPrice > 0) tradeResult.EntryPrice = Update.EntryPrice.Value;
             if (Update.ExitPrice > 0) tradeResult.ExitPrice = Update.ExitPrice.Value;
             if (Update.NumberOfStocks > 0) tradeResult.NumberOfStocks = Update.NumberOfStocks.Value;
-            if (Update.EntryDate > new DateTime(2026, 1, 1, 0, 0, 0)) tradeResult.EntryDate = Update.EntryDate.Value;
-            if (Update.ExitDate > new DateTime(2026, 1, 1, 0, 0, 0) && Update.ExitDate > tradeResult.EntryDate)
+
+            var minDate = new DateTime(2026, 1, 1, 0, 0, 0);
+            if ((Update.EntryDate.HasValue && Update.ExitDate.HasValue) && 
+                _tradeResultValidateHelper.IsValidDate(Update.EntryDate, Update.ExitDate, minDate))
+            {
+                tradeResult.EntryDate = Update.EntryDate.Value;
                 tradeResult.ExitDate = Update.ExitDate.Value;
+            }
+
             if (Update.TradeMethod != null && tradeResult.TradeMethod != null)
             {
                 tradeResult.TradeMethod.Sma = Update.TradeMethod.Sma;
