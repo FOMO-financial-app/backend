@@ -21,7 +21,7 @@ namespace Fomo.Domain.Entities
 
         public void CalculateProfit()
         {
-            Profit = EntryPrice - ExitPrice;
+            Profit = ExitPrice - EntryPrice;
         }
 
     }

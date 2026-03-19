@@ -4,14 +4,25 @@ namespace Fomo.Api.Helpers
 {
     public class TradeResultValidateHelper : ITradeResultValidateHelper
     {
-        public bool IsValidTradeResultDTO(TradeResultCreateDTO tradeResult)
+        public bool IsValidTradeResultUpdateDTO(TradeResultUpdateDTO tradeResult)
         {
-            if (String.IsNullOrEmpty(tradeResult.Symbol) || tradeResult.EntryPrice <= 0 || tradeResult.ExitPrice <= 0 ||
-                tradeResult.NumberOfStocks <= 0 || tradeResult.EntryDate < new DateTime(2026, 1, 1, 0, 0, 0) ||
-                tradeResult.ExitDate < new DateTime(2026, 1, 1, 0, 0, 0) || tradeResult.ExitDate < tradeResult.EntryDate) 
+            if (String.IsNullOrEmpty(tradeResult.Symbol) && !tradeResult.EntryPrice.HasValue && !tradeResult.ExitPrice.HasValue &&
+                !tradeResult.NumberOfStocks.HasValue && !tradeResult.EntryDate.HasValue && !tradeResult.ExitDate.HasValue) 
             {
                 return false;
             }
+
+            return true;
+        }
+
+        public bool IsValidDate(DateTime? entryDate, DateTime? exitDate, DateTime minDate)
+        {
+            DateTime actualDate = DateTime.Now;
+
+            if (!entryDate.HasValue || !exitDate.HasValue) return false;
+            if (entryDate < minDate || exitDate < minDate) return false;
+            if (entryDate > actualDate || exitDate > actualDate) return false;
+            if (entryDate > exitDate) return false;
 
             return true;
         }
