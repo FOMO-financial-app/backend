@@ -46,7 +46,7 @@ namespace Fomo.Api.Controllers
             var parser = new ParseListHelper();
             var closes = parser.ParseList(timeseries.Values, v => v.Close);
 
-            string indicator = $"SMA with a period of {period}";
+            string indicator = $"SMA con un período de {period}";
             await _alertService.SendSmaAlert(closes, sma.Values, symbol, indicator);
 
             return Ok(sma);
@@ -102,7 +102,7 @@ namespace Fomo.Api.Controllers
             var parser = new ParseListHelper();
             var closes = parser.ParseList(timeseries.Values, v => v.Close);
 
-            string indicator = $"Bollinger Bands with a period of {period} and a k of {k}";
+            string indicator = $"Bandas de Bollinger con un período de {period} y k={k}";
             await _alertService.SendBollingerAlert(closes, bollingerBands.LowerBand, symbol, indicator);
 
             return Ok(bollingerBands);
@@ -130,7 +130,7 @@ namespace Fomo.Api.Controllers
 
             var stochasticOscillator = _indicatorService.GetStochastic(timeseries.Values, period, smaperiod);
 
-            string indicator = $"Stochastic Oscilator with a period of {period} and a SMA period of {smaperiod}";
+            string indicator = $"Oscilador Estocástico con un período de {period} utilizando un SMA con período de {smaperiod}";
             await _alertService.SendStochasticAlert(stochasticOscillator.K, stochasticOscillator.D, symbol, indicator);
 
             return Ok(stochasticOscillator);
@@ -155,7 +155,7 @@ namespace Fomo.Api.Controllers
 
             var rsi = _indicatorService.GetRSI(timeseries.Values, period);
 
-            string indicator = $"RSI with a period of {period}";
+            string indicator = $"RSI con un período de {period}";
             await _alertService.SendRsiAlert(rsi.Values, symbol, indicator);
 
             return Ok(rsi);
@@ -180,7 +180,7 @@ namespace Fomo.Api.Controllers
 
             var wrsi = _indicatorService.GetWilderRSI(timeseries.Values, period);
 
-            string indicator = $"Wilder RSI with a period of {period}";
+            string indicator = $"RSI de Wilder con un período de of {period}";
             await _alertService.SendRsiAlert(wrsi.Values, symbol, indicator);
 
             return Ok(wrsi);
