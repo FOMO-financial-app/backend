@@ -24,7 +24,7 @@ namespace Fomo.Infrastructure.ExternalServices.MailService
 
             var mail = new MailMessage($"{_settings.Email}", to, subject, body)
             {
-                IsBodyHtml = false
+                IsBodyHtml = true
             };
 
             await smtp.SendMailAsync(mail);

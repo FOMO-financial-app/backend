@@ -81,12 +81,12 @@ namespace Fomo.Api.Controllers
 
             var mainchannel = _indicatorService.GetMainChannel(timeseries.Values);
 
-            timeseries.Values.Reverse();
+            var reversedValues = timeseries.Values.AsEnumerable().Reverse().ToList();
 
             var response = new ValuesAndChannelDTO
             {
                 MetaDTO = timeseries.MetaDTO,
-                Values = timeseries.Values,
+                Values = reversedValues,
                 Regression = mainchannel.Regression,
                 Upper = mainchannel.Upper,
                 Lower = mainchannel.Lower,
