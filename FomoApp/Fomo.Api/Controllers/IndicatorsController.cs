@@ -4,10 +4,12 @@ using Fomo.Application.Services.Indicators;
 using Fomo.Infrastructure.ExternalServices.MailService;
 using Fomo.Infrastructure.ExternalServices.StockService;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Fomo.Api.Controllers
 {
     [Route("api/[controller]")]
+    [EnableRateLimiting("external-api")]
     [ApiController]
     public class IndicatorsController : ControllerBase
     {
@@ -24,11 +26,12 @@ namespace Fomo.Api.Controllers
 
         }
 
-        [HttpGet("{symbol}/sma/{period:int}")]
+        [HttpGet("sma")]
         [ProducesResponseType(typeof(ValuesAndDateDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetStockSMA(string symbol, int period)
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        public async Task<IActionResult> GetStockSMA([FromQuery] string symbol, [FromQuery] int period)
         {
             if (period < 2)
                 return BadRequest("Period must be greater than one.");
@@ -37,6 +40,9 @@ namespace Fomo.Api.Controllers
 
             if (timeseries == null || timeseries.Values == null)
                 return NotFound($"No data was found for the symbol {symbol}.");
+
+            if (timeseries.IsRateLimited)
+                return StatusCode(503, "Market data temporarily unavailable");
 
             if (period > timeseries.Values.Count)
                 return BadRequest("Period cannot exceed the number of elements.");
@@ -52,11 +58,13 @@ namespace Fomo.Api.Controllers
             return Ok(sma);
         }
 
-        [HttpGet("{symbol}/envelope/{period:int}/{percentage:int}")]
+        [HttpGet("envelopes")]
         [ProducesResponseType(typeof(BandsDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetStockEnvelopeBands(string symbol, int period, int percentage)
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        public async Task<IActionResult> GetStockEnvelopeBands([FromQuery] string symbol, [FromQuery] int period, 
+            [FromQuery] int percentage)
         {
             if (period < 5)
                 return BadRequest("Period must be at least five.");
@@ -69,6 +77,9 @@ namespace Fomo.Api.Controllers
             if (timeseries == null || timeseries.Values == null)
                 return NotFound($"No data was found for the symbol {symbol}.");
 
+            if (timeseries.IsRateLimited)
+                return StatusCode(503, "Market data temporarily unavailable");
+
             if (period > timeseries.Values.Count)
                 return BadRequest("Period cannot exceed the number of elements.");
 
@@ -77,11 +88,13 @@ namespace Fomo.Api.Controllers
             return Ok(envelopeBands);
         }
 
-        [HttpGet("{symbol}/bollinger/{period:int}/{k:int}")]
+        [HttpGet("bollinger")]
         [ProducesResponseType(typeof(BandsDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetStockBollingerBands(string symbol, int period, int k)
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        public async Task<IActionResult> GetStockBollingerBands([FromQuery] string symbol, [FromQuery] int period,
+            [FromQuery] int k)
         {
             if (period < 5)
                 return BadRequest("Period must be at least five.");
@@ -93,6 +106,9 @@ namespace Fomo.Api.Controllers
 
             if (timeseries == null || timeseries.Values == null)
                 return NotFound($"No data was found for the symbol {symbol}.");
+
+            if (timeseries.IsRateLimited)
+                return StatusCode(503, "Market data temporarily unavailable");
 
             if (period > timeseries.Values.Count)
                 return BadRequest("Period cannot exceed the number of elements.");
@@ -108,11 +124,13 @@ namespace Fomo.Api.Controllers
             return Ok(bollingerBands);
         }
 
-        [HttpGet("{symbol}/stochastic/{period:int}/{smaperiod:int}")]
+        [HttpGet("stochastic")]
         [ProducesResponseType(typeof(StochasticDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetStochasticOscillator(string symbol, int period, int smaperiod)
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        public async Task<IActionResult> GetStochasticOscillator([FromQuery] string symbol, [FromQuery] int period,
+            [FromQuery] int smaperiod)
         {
             if (period < 5)
                 return BadRequest("Period must be at least five.");
@@ -125,6 +143,9 @@ namespace Fomo.Api.Controllers
             if (timeseries == null || timeseries.Values == null)
                 return NotFound($"No data was found for the symbol {symbol}.");
 
+            if (timeseries.IsRateLimited)
+                return StatusCode(503, "Market data temporarily unavailable");
+
             if (period > timeseries.Values.Count)
                 return BadRequest("Period cannot exceed the number of elements.");
 
@@ -136,11 +157,12 @@ namespace Fomo.Api.Controllers
             return Ok(stochasticOscillator);
         }
 
-        [HttpGet("{symbol}/rsi/{period:int}")]
+        [HttpGet("rsi")]
         [ProducesResponseType(typeof(ValuesAndDateDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetStockRSI(string symbol, int period)
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        public async Task<IActionResult> GetStockRSI([FromQuery] string symbol, [FromQuery] int period)
         {
             if (period < 7 || period > 14)
                 return BadRequest("Period must be between 7 and 14.");
@@ -149,6 +171,9 @@ namespace Fomo.Api.Controllers
 
             if (timeseries == null || timeseries.Values == null)
                 return NotFound($"No data was found for the symbol {symbol}.");
+
+            if (timeseries.IsRateLimited)
+                return StatusCode(503, "Market data temporarily unavailable");
 
             if (period > timeseries.Values.Count)
                 return BadRequest("Period cannot exceed the number of elements.");
@@ -161,11 +186,12 @@ namespace Fomo.Api.Controllers
             return Ok(rsi);
         }
 
-        [HttpGet("{symbol}/wrsi/{period:int}")]
+        [HttpGet("wrsi")]
         [ProducesResponseType(typeof(ValuesAndDateDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetStockWilderRSI(string symbol, int period)
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        public async Task<IActionResult> GetStockWilderRSI([FromQuery] string symbol, [FromQuery] int period)
         {
             if (period < 7 || period > 14)
                 return BadRequest("Period must be between 9 and 25.");
@@ -174,6 +200,9 @@ namespace Fomo.Api.Controllers
 
             if (timeseries == null || timeseries.Values == null)
                 return NotFound($"No data was found for the symbol {symbol}.");
+
+            if (timeseries.IsRateLimited)
+                return StatusCode(503, "Market data temporarily unavailable");
 
             if (period > timeseries.Values.Count)
                 return BadRequest("Period cannot exceed the number of elements.");

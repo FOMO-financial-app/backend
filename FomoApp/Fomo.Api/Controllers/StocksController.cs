@@ -4,6 +4,7 @@ using Fomo.Domain.Entities;
 using Fomo.Infrastructure.ExternalServices.StockService;
 using Fomo.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Fomo.Api.Controllers
 {
@@ -69,15 +70,20 @@ namespace Fomo.Api.Controllers
             });
         }
 
-        [HttpGet("timeseries/{symbol}")]
+        [HttpGet("timeseries")]
+        [EnableRateLimiting("external-api")]
         [ProducesResponseType(typeof(ValuesAndChannelDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetStockTimeSeries(string symbol)
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        public async Task<IActionResult> GetStockTimeSeries([FromQuery] string symbol)
         {
             var timeseries = await _twelveDataService.GetTimeSeries(symbol);
 
             if (timeseries == null || timeseries.Values == null)
                 return NotFound($"No data was found for the symbol {symbol}.");
+
+            if (timeseries.IsRateLimited)
+                return StatusCode(503, "Market data temporarily unavailable");
 
             var mainchannel = _indicatorService.GetMainChannel(timeseries.Values);
 
