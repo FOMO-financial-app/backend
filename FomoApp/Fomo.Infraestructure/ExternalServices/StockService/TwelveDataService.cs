@@ -1,6 +1,7 @@
 ﻿using Fomo.Application.DTO.StockDataDTO;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
 
 namespace Fomo.Infrastructure.ExternalServices.StockService
 {
@@ -19,33 +20,65 @@ namespace Fomo.Infrastructure.ExternalServices.StockService
 
         public async Task<StockResponseDTO?> GetStocks()
         {
-            string path = $"stocks?country=US&apikey={_twelveData.ApiKey}";
-            
-            return await _externalApiHelper.GetAsync<StockResponseDTO>(path);
+            try {
+                string path = $"stocks?country=US&apikey={_twelveData.ApiKey}";
+
+                return await _externalApiHelper.GetAsync<StockResponseDTO>(path);
+            }
+            catch (ExternalApiLimitException)
+            {
+                return new StockResponseDTO
+                {
+                    IsRateLimited = true
+                };
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         public async Task<ValuesResponseDTO?> GetTimeSeries(string symbol)
         {
-            var cacheKey = $"timeseries_{symbol}";
-
-            if (_cache.TryGetValue(cacheKey, out ValuesResponseDTO? cached))
+            try
             {
-                return cached;
+                var cacheKey = $"timeseries_{symbol}";
+
+                if (_cache.TryGetValue(cacheKey, out ValuesResponseDTO? cached))
+                {
+                    return cached;
+                }
+
+                string path = $"time_series?symbol={symbol}&interval=1day&outputsize=120&apikey={_twelveData.ApiKey}";
+
+                var result = await _externalApiHelper.GetAsync<ValuesResponseDTO>(path);
+
+                if (result == null)
+                {
+                    return null;
+                }
+
+                var options = new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10),
+                    SlidingExpiration = TimeSpan.FromMinutes(5)
+                };
+
+                _cache.Set(cacheKey, result, options);
+
+                return result;
             }
-
-            string path = $"time_series?symbol={symbol}&interval=1day&outputsize=120&apikey={_twelveData.ApiKey}";
-
-            var result = await _externalApiHelper.GetAsync<ValuesResponseDTO>(path);
-
-            var options = new MemoryCacheEntryOptions
+            catch (ExternalApiLimitException)
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10),
-                SlidingExpiration = TimeSpan.FromMinutes(5)
-            };
-
-            _cache.Set(cacheKey, result, options);
-
-            return result;
+                return new ValuesResponseDTO
+                {
+                    IsRateLimited = true
+                };
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
     }
 }

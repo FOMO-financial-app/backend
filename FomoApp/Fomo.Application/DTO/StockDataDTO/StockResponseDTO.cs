@@ -7,7 +7,6 @@ namespace Fomo.Application.DTO.StockDataDTO
         [JsonPropertyName("data")]
         public List<StockDTO> Data { get; init; } = new List<StockDTO>();
 
-        [JsonPropertyName("status")]
-        public string Status { get; init; } = string.Empty;
+        public bool IsRateLimited { get; set; } = false;
     }
 }
