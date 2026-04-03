@@ -53,11 +53,36 @@ The application uses `appsettings.json` for configuration.
 
 ### Required settings:
 
-* Database connection string  
-* Auth0 Domain and Audience  
-* TwelveData API Key  
-* Email service credentials  
-* Frontend URL  
+### 🔑 Database connection string
+
+![Database Credential](./docs/images/database-credentials.png)
+
+For example: Server="Server Name";Database=FomoAppDB;Trusted_Connection=True;TrustServerCertificate=True;
+
+### 🔑 Auth0 Domain and Audience
+
+https://manage.auth0.com
+
+* Get Auth0 Aplication Domain
+
+![Auth0 Domain](./docs/images/auth0-domain.png)
+
+* Get Auth0 API Audience
+
+![Auth0 Audience](./docs/images/auth0-audience.png)
+
+### 🔑 TwelveData API Key
+
+https://twelvedata.com/login
+
+![Auth0 Audience](./docs/images/twelve-credentials.png)
+
+### 🔑 Email service credentials
+
+Go to:
+Google Account → Security → 2-Step Verification → App passwords
+
+### 🔑 Frontend URL  
 
 ---
 
@@ -71,8 +96,8 @@ To apply migrations:
 dotnet ef database update --startup-project Fomo.Api --project Fomo.Infrastructure
 ```
 Notes:
--A valid connection string must be provided
--The connection string is configured manually in the EFCoreDbContextFactory for design-time operations
+* A valid connection string must be provided
+* The connection string is configured manually in the EFCoreDbContextFactory for design-time operations
 
 ---
 
@@ -105,11 +130,13 @@ This API uses Auth0 with JWT-based authentication.
 
 The project follows a layered architecture inspired by Clean Architecture principles:
 
+```bash
 FomoApp/
 ├── Fomo.Api/              # Presentation layer (controllers, config)
 ├── Fomo.Application/      # Business logic (services, DTOs)
 ├── Fomo.Domain/           # Core domain (entities)
 ├── Fomo.Infrastructure/   # External integrations (database, email, APIs)
+```
 
 🧅Layer Responsibilities:
 
