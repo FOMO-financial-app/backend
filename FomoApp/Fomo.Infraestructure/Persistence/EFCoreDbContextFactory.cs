@@ -10,7 +10,7 @@ public class EFCoreDbContextFactory : IDesignTimeDbContextFactory<EFCoreDbContex
         var connectionString = "";
 
         var builder = new DbContextOptionsBuilder<EFCoreDbContext>();
-        builder.UseSqlServer(connectionString);
+        builder.UseNpgsql(connectionString);
 
         return new EFCoreDbContext(builder.Options);
     }

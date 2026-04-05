@@ -32,8 +32,8 @@ namespace Fomo.Infrastructure.Repositories
         {
             var filteredList = await _dbContext.Stocks
                 .Where(tr =>
-                    tr.Name.StartsWith(query) ||
-                    tr.Symbol.StartsWith(query))
+                    tr.Name.ToLower().StartsWith(query.ToLower()) ||
+                    tr.Symbol.ToLower().StartsWith(query.ToLower()))
                 .Select(s => new SymbolAndName
                 {
                     Symbol = s.Symbol,
@@ -83,7 +83,7 @@ namespace Fomo.Infrastructure.Repositories
 
         public async Task TruncateAsync()
         {
-            await _dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE [Stocks]");
+            await _dbContext.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"Stocks\"");
         }
 
         public Task<IDbContextTransaction> BeginTransactionAsync()

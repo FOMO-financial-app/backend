@@ -83,29 +83,14 @@ builder.Services
             },
 
             ValidateLifetime = true
-        };
-
-        options.Events = new JwtBearerEvents
-        {
-            OnTokenValidated = _ =>
-            {
-                Console.WriteLine(" TOKEN VALIDATED");
-                return Task.CompletedTask;
-            },
-            OnAuthenticationFailed = context =>
-            {
-                Console.WriteLine(" AUTH FAILED");
-                Console.WriteLine(context.Exception);
-                return Task.CompletedTask;
-            }
-        };
+        };        
     });
 
 builder.Services.AddAuthorization();
 
 builder.Services.AddDbContext<EFCoreDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration["ConnectionString:EFCoreDBConnection"]);
+    options.UseNpgsql(builder.Configuration["ConnectionString:EFCoreDBConnection"]);
 });
 
 builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
@@ -157,6 +142,12 @@ app.UseAuthorization();
 app.UseRateLimiter();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<EFCoreDbContext>();
+    db.Database.Migrate();
+}
 
 using (var scope = app.Services.CreateScope())
 {
