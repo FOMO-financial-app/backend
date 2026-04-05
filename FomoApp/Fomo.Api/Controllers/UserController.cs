@@ -4,6 +4,7 @@ using Fomo.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using System.Security.Claims;
 
 namespace Fomo.Api.Controllers
@@ -46,8 +47,8 @@ namespace Fomo.Api.Controllers
                 await _userRepository.InsertIfNotExistsAsync(newUser);
                 await _userRepository.SaveAsync();
             }
-            catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("duplicate") == true
-                                            || ex.InnerException?.Message.Contains("UNIQUE") == true)
+            catch (DbUpdateException ex) when (ex.InnerException is PostgresException pgEx
+                                   && pgEx.SqlState == "23505")
             {
                 return Ok();
             }

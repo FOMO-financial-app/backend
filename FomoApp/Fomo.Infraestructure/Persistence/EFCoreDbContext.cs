@@ -30,9 +30,9 @@ namespace Fomo.Infrastructure.Persistence
             modelBuilder.Entity<TradeResult>()
                 .ToTable(t =>
                 {
-                    t.HasCheckConstraint("CK_Product_EntryPrice_NonNegative", "[EntryPrice] >= 0");
-                    t.HasCheckConstraint("CK_Product_ExitPrice_NonNegative", "[ExitPrice] >= 0");
-                    t.HasCheckConstraint("CK_Product_NumberOfStocks_NonNegative", "[NumberOfStocks] >= 0");
+                    t.HasCheckConstraint("CK_Product_EntryPrice_NonNegative", "\"EntryPrice\" >= 0");
+                    t.HasCheckConstraint("CK_Product_ExitPrice_NonNegative", "\"ExitPrice\" >= 0");
+                    t.HasCheckConstraint("CK_Product_NumberOfStocks_NonNegative", "\"NumberOfStocks\" >= 0");
                 });
 
             modelBuilder.Entity<TradeResult>()
