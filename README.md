@@ -1,6 +1,6 @@
 # 📊 Stock Analysis Platform - Backend
 
-Backend API built with .NET 8 for a stock analysis platform, providing stock data processing, user management, a results board, and alerting features
+Backend API built with .NET 9 for a stock analysis platform, providing stock data processing, user management, a results board, and alerting features
 
 ---
 
@@ -17,9 +17,9 @@ This API is responsible for:
 
 ## 🚀 Tech Stack
 
-* .NET 8 (Web API)
+* .NET 9 (Web API)
 * Entity Framework Core
-* SQL Server
+* PostgreSQL
 * Auth0 (JWT Authentication)
 
 ---
@@ -33,21 +33,31 @@ git clone https://github.com/FOMO-financial-app/backend
 cd backend
 ```
 
-Restore dependencies:
+## 🏠 Option A — Run locally:
+### Restore dependencies:
 
 ```bash
 dotnet restore
 ```
 
-Run the application:
+### Run the application:
 
 ```bash
-dotnet run
+dotnet run --project FomoApp/Fomo.Api
+```
+
+## 📦 Option B — Run with Docker:
+Make sure Docker Desktop is running, then:
+
+```bash
+docker compose up --build
 ```
 
 ---
 
 ## 🔌 Configuration
+
+## 🏠 Running locally:
 
 The application uses `appsettings.json` for configuration.
 
@@ -55,9 +65,7 @@ The application uses `appsettings.json` for configuration.
 
 ### 🔑 Database connection string
 
-![Database Credential](./docs/images/database-credentials.png)
-
-For example: Server="Server Name";Database=FomoAppDB;Trusted_Connection=True;TrustServerCertificate=True;
+For example: Host=localhost;Database=FomoAppDB;Username=your-user;Password=your-pass
 
 ### 🔑 Auth0 Domain and Audience
 
@@ -84,16 +92,23 @@ Google Account → Security → 2-Step Verification → App passwords
 
 ### 🔑 Frontend URL  
 
+## 📦Running with Docker:
+Copy .env.example to .env and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
 ---
 
 ## 🗄️ Database
 
-This project uses Entity Framework Core with migrations.
+This project uses Entity Framework Core with PostgreSQL. Migrations are applied automatically on startup when running with Docker.
 
-To apply migrations:
+Applying migrations manually (local development):
 
 ```bash
-dotnet ef database update --startup-project Fomo.Api --project Fomo.Infrastructure
+dotnet ef database update --startup-project FomoApp/Fomo.Api --project FomoApp/Fomo.Infrastructure
 ```
 Notes:
 * A valid connection string must be provided
