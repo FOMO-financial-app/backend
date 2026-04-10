@@ -26,5 +26,15 @@ namespace Fomo.Api.Helpers
 
             return true;
         }
+
+        public bool IsEmptyTradeMethod(TradeMethodDTO tradeMethod)
+        {
+            if (!tradeMethod.Sma && !tradeMethod.Bollinger && !tradeMethod.Stochastic && !tradeMethod.Rsi && !tradeMethod.Other)
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }

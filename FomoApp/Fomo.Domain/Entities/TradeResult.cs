@@ -9,7 +9,6 @@ namespace Fomo.Domain.Entities
         public string Symbol { get; set; } = string.Empty;
         public decimal EntryPrice { get; set; }
         public decimal ExitPrice { get; set; }
-        public decimal Profit { get; set; }
         public int NumberOfStocks { get; set; }
         public DateTime EntryDate{ get; set; }
         public DateTime ExitDate { get; set; }
@@ -18,11 +17,5 @@ namespace Fomo.Domain.Entities
         public User User { get; set; } = null!;
 
         public TradeMethod TradeMethod { get; set; } = null!;
-
-        public void CalculateProfit()
-        {
-            Profit = ExitPrice - EntryPrice;
-        }
-
     }
 }

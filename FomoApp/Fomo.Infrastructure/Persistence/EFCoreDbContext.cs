@@ -37,15 +37,11 @@ namespace Fomo.Infrastructure.Persistence
 
             modelBuilder.Entity<TradeResult>()
                 .Property(tr => tr.EntryPrice)
-                .HasPrecision(18, 6);
+                .HasPrecision(10, 4);
             
             modelBuilder.Entity<TradeResult>()
                 .Property(tr => tr.ExitPrice)
-                .HasPrecision(18, 6);
-            
-            modelBuilder.Entity<TradeResult>()
-                .Property(tr => tr.Profit)
-                .HasPrecision(18, 6);
+                .HasPrecision(10, 4);            
             
             modelBuilder.Entity<Stock>()
                 .HasIndex(s => s.Symbol);

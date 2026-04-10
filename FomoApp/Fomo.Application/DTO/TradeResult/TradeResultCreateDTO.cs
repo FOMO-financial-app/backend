@@ -4,16 +4,16 @@ namespace Fomo.Application.DTO.TradeResult
 {
     public class TradeResultCreateDTO
     {
-        [MaxLength(10)]
+        [MaxLength(10, ErrorMessage = "The symbol must not exceed 10 characters")]
         public string Symbol { get; set; } = string.Empty;
 
-        [Range(0.00001, double.MaxValue, ErrorMessage = "Entry price must be greater than 0")]
+        [Range(0.0001, 999999.9999, ErrorMessage = "Entry price must be greater than 0, and the upper limit is 999999")]
         public decimal EntryPrice { get; set; }
 
-        [Range(0.00001, double.MaxValue, ErrorMessage = "Exit price must be greater than 0")]
+        [Range(0.0001, 999999.9999, ErrorMessage = "Exit price must be greater than 0, and the upper limit is 999999")]
         public decimal ExitPrice { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "Volume must be greater than 0")]
+        [Range(1, 100000, ErrorMessage = "Volume must be greater than 0, and the upper limit is 100000")]
         public int NumberOfStocks { get; set; }
         public DateTime EntryDate { get; set; }
         public DateTime ExitDate { get; set; }

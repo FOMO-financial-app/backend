@@ -62,11 +62,10 @@ namespace Fomo.Api.Controllers
                     Bollinger = tradeResult.TradeMethod.Bollinger,
                     Stochastic = tradeResult.TradeMethod.Stochastic,
                     Rsi = tradeResult.TradeMethod.Rsi,
-                    Other = tradeResult.TradeMethod.Other,
+                    Other = (!_tradeResultValidateHelper.IsEmptyTradeMethod(tradeResult.TradeMethod)) == true ||
+                        tradeResult.TradeMethod.Other
                 }
             };
-
-            newTradeResult.CalculateProfit();
             
             await _tradeResultRepository.InsertAsync(newTradeResult);
             await _tradeResultRepository.SaveAsync();
@@ -171,9 +170,9 @@ namespace Fomo.Api.Controllers
                 tradeResult.Symbol = symbol;
             }
 
-            if (Update.EntryPrice > 0) tradeResult.EntryPrice = Update.EntryPrice.Value;
-            if (Update.ExitPrice > 0) tradeResult.ExitPrice = Update.ExitPrice.Value;
-            if (Update.NumberOfStocks > 0) tradeResult.NumberOfStocks = Update.NumberOfStocks.Value;
+            if (Update.EntryPrice != null) tradeResult.EntryPrice = Update.EntryPrice.Value;
+            if (Update.ExitPrice != null ) tradeResult.ExitPrice = Update.ExitPrice.Value;
+            if (Update.NumberOfStocks != null) tradeResult.NumberOfStocks = Update.NumberOfStocks.Value;
 
             var minDate = new DateTime(2026, 1, 1, 0, 0, 0);
             if ((Update.EntryDate.HasValue && Update.ExitDate.HasValue) && 
@@ -189,10 +188,10 @@ namespace Fomo.Api.Controllers
                 tradeResult.TradeMethod.Bollinger = Update.TradeMethod.Bollinger;
                 tradeResult.TradeMethod.Stochastic = Update.TradeMethod.Stochastic;
                 tradeResult.TradeMethod.Rsi = Update.TradeMethod.Rsi;
-                tradeResult.TradeMethod.Other = Update.TradeMethod.Other;
+                tradeResult.TradeMethod.Other = (!_tradeResultValidateHelper.IsEmptyTradeMethod(Update.TradeMethod)) == true ||
+                        tradeResult.TradeMethod.Other;
             }
 
-            tradeResult.CalculateProfit();
             await _tradeResultRepository.SaveAsync();
 
             return Ok();
