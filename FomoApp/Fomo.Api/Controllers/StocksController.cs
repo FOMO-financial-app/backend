@@ -45,6 +45,9 @@ namespace Fomo.Api.Controllers
             if (page <= 0 || pagesize <= 0)
                 return BadRequest("Page and PageSize must be greatear than 0");
 
+            if (page <= 0 || pagesize <= 0)
+                return BadRequest("Page size cannot exceed 100 items");
+
             var totalRecords = await _stockRepository.CountRecordsAsync();
 
             var totalPages = (int)Math.Ceiling((double)totalRecords / pagesize);
