@@ -7,7 +7,7 @@ namespace Fomo.Application.Services.Indicators
     {
         public BandsDTO CalculateBollinger(List<ValuesDTO> values, int period, int k)
         {
-            if (values == null || values.Count < period || period == 0 || k < 1)
+            if (values == null || values.Count < period || period < 1 || k < 1)
             {
                 return new BandsDTO
                 {
