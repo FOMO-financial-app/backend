@@ -81,22 +81,26 @@ public class BollingerCalculatorTests
         result.Date.Should().BeEmpty();
     }
 
-    [Fact]
-    public void CalculateBollinger_WhenKLessThanOne_ReturnsEmptyBands()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void CalculateBollinger_WhenKLessThanOne_ReturnsEmptyBands(int k)
     {
         var values = BuildValues(10, 20, 30);
 
-        var result = _sut.CalculateBollinger(values, period: 3, k: 0);
+        var result = _sut.CalculateBollinger(values, period: 3, k);
 
         result.UpperBand.Should().BeEmpty();
     }
 
-    [Fact]
-    public void CalculateBollinger_WhenPeriodLessThanOne_ReturnsEmptyBands()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void CalculateBollinger_WhenPeriodLessThanOne_ReturnsEmptyBands(int period)
     {
         var values = BuildValues(10, 20, 30);
 
-        var result = _sut.CalculateBollinger(values, period: -1, k: 2);
+        var result = _sut.CalculateBollinger(values, period, k: 2);
 
         result.UpperBand.Should().BeEmpty();
     }

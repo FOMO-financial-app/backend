@@ -64,21 +64,26 @@ public class EnvelopeCalculatorTests
         result.Date.Should().BeEmpty();
     }
 
-    [Fact]
-    public void CalculateEnvelope_WhenPercentageLessThanOne_ReturnsEmptyBands()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void CalculateEnvelope_WhenPercentageLessThanOne_ReturnsEmptyBands(int percentage)
     {
         var values = BuildValues(10, 20, 30);
 
-        var result = _sut.CalculateEnvelope(values, period: 3, percentage: 0);
+        var result = _sut.CalculateEnvelope(values, period: 3, percentage);
 
         result.UpperBand.Should().BeEmpty();
     }
-    [Fact]
-    public void CalculateEnvelope_WhenPeriodIsZero_ReturnsEmptyBands()
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void CalculateEnvelope_WhenPeriodIsZero_ReturnsEmptyBands(int period)
     {
         var values = BuildValues(10, 20, 30);
 
-        var result = _sut.CalculateEnvelope(values, period: -1, percentage: 10);
+        var result = _sut.CalculateEnvelope(values, period, percentage: 10);
 
         result.UpperBand.Should().BeEmpty();
     }

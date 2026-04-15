@@ -41,12 +41,14 @@ public class SmaCalculatorTests
         result.Should().BeEmpty();
     }
 
-    [Fact]
-    public void CalculateSMA_WhenPeriodIsZero_ReturnsEmptyList()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void CalculateSMA_WhenPeriodLessThanOne_ReturnsEmptyList(int period)
     {
         var values = new List<decimal> { 10, 20, 30 };
 
-        var result = _sut.CalculateSMA(values, period: 0);
+        var result = _sut.CalculateSMA(values, period);
 
         result.Should().BeEmpty();
     }
