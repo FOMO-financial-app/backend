@@ -21,6 +21,8 @@ This API is responsible for:
 * Entity Framework Core
 * PostgreSQL
 * Auth0 (JWT Authentication)
+* xUnit + FluentAssertions (Unit Testing)
+* Docker
 
 ---
 
@@ -138,6 +140,21 @@ This API uses Auth0 with JWT-based authentication.
 | GET    | /api/Indicators/envelopes          | Get envelopes indicator for a specific stock          |
 
 > ⚠️ Note: This is a simplified overview of the API. Additional endpoints are available in the project.
+
+---
+
+## 🧪 Testing
+
+Unit tests are implemented for core business logic, specifically for financial indicator calculations.
+
+* Framework: xUnit  
+* Assertions: FluentAssertions  
+
+To run tests:
+
+```bash
+dotnet test
+```
 
 ---
 
