@@ -79,7 +79,7 @@ public class EnvelopeCalculatorTests
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public void CalculateEnvelope_WhenPeriodIsZero_ReturnsEmptyBands(int period)
+    public void CalculateEnvelope_WhenPeriodLessThanOne_ReturnsEmptyBands(int period)
     {
         var values = BuildValues(10, 20, 30);
 

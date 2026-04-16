@@ -7,7 +7,8 @@ namespace Fomo.Application.Services.Indicators
     {
         public StochasticDTO CalculateStochastic(List<ValuesDTO> values, int period, int smaperiod) 
         {
-            if (values == null || values.Count < period || values.Count - period +1 < smaperiod)
+            if (values == null || values.Count < period || values.Count - period +1 < smaperiod
+                || period <= 0 || smaperiod <= 0)
             {
                 return new StochasticDTO
                 {
