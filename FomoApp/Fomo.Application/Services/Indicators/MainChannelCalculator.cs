@@ -39,6 +39,18 @@ namespace Fomo.Application.Services.Indicators
                 .Select((v, i) => v * i)
                 .Sum();
 
+            if (n == 1)
+            {
+                var value = (high[0] + low[0] + closes[0]) / 3;
+
+                return new MainChannelDTO
+                {
+                    Regression = new List<decimal> { value },
+                    Upper = new List<decimal> { value },
+                    Lower = new List<decimal> { value }
+                };
+            }
+
             var m = ((n*sumXY) - (sumX*typicalPrices.Sum()))/((n*sumX2)-(sumX*sumX));
 
             var b = (typicalPrices.Sum() - (m * sumX)) / n;
@@ -56,9 +68,9 @@ namespace Fomo.Application.Services.Indicators
 
             for (int i = 0; i < n; ++i)
             {
-                var upvalue = high[i] - regression[i];
+                var upvalue = Math.Max(0, high[i] - regression[i]);
                 distUp.Add(upvalue);
-                var downvalue = regression[i] - low[i];
+                var downvalue = Math.Max(0, regression[i] - low[i]);
                 distDown.Add(downvalue);
             }
 

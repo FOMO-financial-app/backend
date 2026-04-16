@@ -7,7 +7,7 @@ namespace Fomo.Application.Services.Indicators
     {
         public BandsDTO CalculateEnvelope(List<ValuesDTO> values, int period, int percentage)
         {
-            if (values == null || values.Count < period || period == 0 || percentage < 1)
+            if (values == null || values.Count < period || period <= 0 || percentage < 1)
             {
                 return new BandsDTO
                 {

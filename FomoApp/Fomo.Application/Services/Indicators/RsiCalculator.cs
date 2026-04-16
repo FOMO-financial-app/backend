@@ -7,7 +7,7 @@ namespace Fomo.Application.Services.Indicators
     {
         public ValuesAndDateDTO CalculateRsi(List<ValuesDTO> values, int period)
         {
-            if (values == null || values.Count < period + 1 || period == 0)
+            if (values == null || values.Count < period + 1 || period <= 0)
             {
                 return new ValuesAndDateDTO
                 {
@@ -44,8 +44,17 @@ namespace Fomo.Application.Services.Indicators
                 gain = gain/period;
                 loss = loss/period;
 
-                decimal rs = loss == 0 ? 0 : gain / loss;
-                decimal rsi = loss == 0 ? 100 : 100 - (100 / (1 + rs));
+                decimal rsi = 0;
+
+                if (gain == 0 && loss == 0)
+                    rsi = 50;
+                else if (loss == 0)
+                    rsi = 100;
+                else
+                {
+                    decimal rs = gain / loss;
+                    rsi = 100 - (100 / (1 + rs));
+                }
 
                 rsiList.Add(rsi);
             }
